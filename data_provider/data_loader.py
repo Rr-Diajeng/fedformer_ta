@@ -292,7 +292,7 @@ class Dataset_Custom(Dataset):
         elif self.set_type == 2:     # test
             df_sel = df_raw[df_raw['month'] == 8]
         else:
-            df_sel = df_raw[~df_raw['month'].isin([9, 10])]
+            df_sel = df_raw[df_raw['month'] == 9]
 
         # 3. Siapkan fitur
         # daftar kolom fitur kecuali date, target, month
