@@ -25,6 +25,7 @@ def data_provider(args, flag):
         batch_size = 1
         freq = args.detail_freq
         Data = Dataset_Pred
+    #di shuffle untuk train agar tidak overfitting. 
     else:
         shuffle_flag = True
         drop_last = True
