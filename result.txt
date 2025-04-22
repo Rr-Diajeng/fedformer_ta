@@ -34,3 +34,30 @@ mse:0.12690263986587524, mae:0.24076075851917267
 TEMPERATURE_FEDformer_random_modes64_custom_ftM_sl24_ll24_pl24_dm512_nh8_el2_dl1_df2048_fc3_ebtimeF_dtTrue_Exp_2  
 mse:0.12750911712646484, mae:0.23960553109645844
 
+TEMPERATURE_BLN_FEDformer_random_modes64_custom_ftM_sl24_ll24_pl24_dm512_nh8_el2_dl1_df2048_fc3_ebtimeF_dtTrue_'Exp'_0  
+mse:0.1894143670797348, mae:0.30198147892951965
+
+TEMPERATURE_BLN_FEDformer_random_modes64_custom_ftM_sl24_ll24_pl24_dm512_nh8_el2_dl1_df2048_fc3_ebtimeF_dtTrue_'Exp'_1  
+mse:0.1904236525297165, mae:0.30311307311058044
+
+TEMPERATURE_BLN_FEDformer_random_modes64_custom_ftM_sl24_ll24_pl24_dm512_nh8_el2_dl1_df2048_fc3_ebtimeF_dtTrue_'Exp'_2  
+mse:0.18804283440113068, mae:0.3014620244503021
+
+GHI_BLN_FEDformer_random_modes64_custom_ftM_sl24_ll24_pl24_dm512_nh8_el2_dl1_df2048_fc3_ebtimeF_dtTrue_'Exp'_0  
+mse:0.18984775245189667, mae:0.30356091260910034
+
+GHI_BLN_FEDformer_random_modes64_custom_ftM_sl24_ll24_pl24_dm512_nh8_el2_dl1_df2048_fc3_ebtimeF_dtTrue_'Exp'_1  
+mse:0.1903887540102005, mae:0.3032000958919525
+
+GHI_BLN_FEDformer_random_modes64_custom_ftM_sl24_ll24_pl24_dm512_nh8_el2_dl1_df2048_fc3_ebtimeF_dtTrue_'Exp'_2  
+mse:0.18904165923595428, mae:0.30350199341773987
+
+KW_BLN_FEDformer_random_modes64_custom_ftM_sl24_ll24_pl24_dm512_nh8_el2_dl1_df2048_fc3_ebtimeF_dtTrue_'Exp'_0  
+mse:nan, mae:nan
+
+KW_BLN_FEDformer_random_modes64_custom_ftM_sl24_ll24_pl24_dm512_nh8_el2_dl1_df2048_fc3_ebtimeF_dtTrue_'Exp'_1  
+mse:0.18600612878799438, mae:0.29922282695770264
+
+KW_BLN_FEDformer_random_modes64_custom_ftM_sl24_ll24_pl24_dm512_nh8_el2_dl1_df2048_fc3_ebtimeF_dtTrue_'Exp'_2  
+mse:0.1890190988779068, mae:0.3029167950153351
+
