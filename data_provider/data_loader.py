@@ -286,13 +286,23 @@ class Dataset_Custom(Dataset):
         
         df_raw['month'] = df_raw['date'].dt.month
 
-        # 2. Filter per flag
+        # 2. Filter per flag (tambah buffer untuk sliding window)
         if self.set_type == 0:       # train
             df_sel = df_raw[df_raw['month'].isin([5,6,7])]
-        elif self.set_type == 2:     # test
-            df_sel = df_raw[df_raw['month'] == 8]
-        else:
-            df_sel = df_raw[df_raw['month'] == 9]
+
+        elif self.set_type == 1:     # val
+            df_temp = df_raw[df_raw['month'].isin([7,8])]
+            val_start_idx = df_temp[df_temp['month'] == 8].index[0]
+            start_idx = val_start_idx - self.seq_len
+            df_sel = df_temp.loc[start_idx:]
+
+        else:                        # test
+            df_temp = df_raw[df_raw['month'].isin([8,9])]
+            test_start_idx = df_temp[df_temp['month'] == 9].index[0]
+            start_idx = test_start_idx - self.seq_len
+            df_sel = df_temp.loc[start_idx:]
+
+        print(f"{['Train','Val','Test'][self.set_type]} | Start: {df_sel['date'].iloc[0]} | End: {df_sel['date'].iloc[-1]} | Total: {len(df_sel)}")
 
         # 3. Siapkan fitur
         # daftar kolom fitur kecuali date, target, month
