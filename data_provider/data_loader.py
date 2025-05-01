@@ -336,7 +336,7 @@ class Dataset_Custom(Dataset):
         self.data_x     = data
         self.data_y     = data
         self.data_stamp = data_stamp
-
+        self.date_list = df_sel['date'].reset_index(drop=True)
 
     def __getitem__(self, index):
         s_begin = index
@@ -354,7 +354,7 @@ class Dataset_Custom(Dataset):
     def __len__(self):
         return len(self.data_x) - self.seq_len - self.pred_len + 1
 
-    def inverse_transform(self, data):
+    def inverse_transform_custom(self, data):
         return self.scaler.inverse_transform(data)
 
 
@@ -513,6 +513,7 @@ class Dataset_Pred(Dataset):
         # — select features exactly like your Custom dataset
         feat_cols = [c for c in df_raw.columns if c not in ['date', self.target, 'month']]
         if self.features in ['M', 'MS']:
+            self.pred_cols = feat_cols + [self.target]
             data_all   = df_raw[feat_cols + [self.target]].values
             train_part = df_raw[df_raw['month'].isin([5,6,7])][feat_cols + [self.target]].values
         else:
@@ -580,6 +581,8 @@ class Dataset_Pred(Dataset):
         else:
             tf2 = time_features(pd.DatetimeIndex(df_ext['date']), freq=self.freq)
             self.data_stamp = tf2.T
+        
+        self.pred_dates = df_ext['date'].iloc[self.seq_len:].reset_index(drop=True)
 
     def __getitem__(self, idx):
         # we only have one window, so idx is always 0

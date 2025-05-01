@@ -28,6 +28,7 @@ def data_provider(args, flag):
         drop_last    = False
         batch_size   = 1
         freq         = args.detail_freq
+        Data = Dataset_Pred
 
     else:  # train / val
         shuffle_flag = True
@@ -44,7 +45,6 @@ def data_provider(args, flag):
         target    = args.target,
         timeenc   = timeenc,
         freq      = freq,
-        scale     = args.scale,
     )
 
     if flag == 'pred':

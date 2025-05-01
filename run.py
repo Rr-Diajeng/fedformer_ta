@@ -71,9 +71,23 @@ def main():
                         help='time features encoding, options:[timeF, fixed, learned]')
     parser.add_argument('--activation', type=str, default='gelu', help='activation')
     parser.add_argument('--output_attention', action='store_true', help='whether to output attention in ecoder')
+
+    #prediction
     parser.add_argument('--do_predict', action='store_true', help='whether to predict unseen future data')
     parser.add_argument('--pred_start', type=str, default=None)
     parser.add_argument('--pred_end',   type=str, default=None)
+    parser.add_argument(
+        '--scale',
+        type=bool,
+        default=True,
+        help='whether to apply StandardScaler to your data'
+    )
+    parser.add_argument(
+        '--inverse',
+        type=bool,
+        default=False,
+        help='for Dataset_Pred: if True, data_y will be the raw values instead of scaled'
+    )
 
 
     # optimization
@@ -167,11 +181,7 @@ def main():
         exp = Exp(args)  # set experiments
         print('>>>>>>>testing : {}<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<'.format(setting))
         exp.test(setting, test=1)
-
-        if args.do_predict:
-                print('>>>>>>>predicting : {}<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<'.format(setting))
-                exp.predict(setting, True)
-                
+        
         torch.cuda.empty_cache()
 
 
