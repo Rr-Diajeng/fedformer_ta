@@ -45,7 +45,7 @@ class Exp_Main(Exp_Basic):
         return criterion
 
     def vali(self, vali_data, vali_loader, criterion):
-        total_loss = []
+        loss_list, mae_list = [], []
         self.model.eval()
         with torch.no_grad():
             for i, (batch_x, batch_y, batch_x_mark, batch_y_mark) in enumerate(vali_loader):
@@ -78,10 +78,14 @@ class Exp_Main(Exp_Basic):
 
                 loss = criterion(pred, true)
 
-                total_loss.append(loss)
-        total_loss = np.average(total_loss)
+                mae  = torch.mean(torch.abs(pred - true))
+
+                loss_list.append(loss.item())
+                mae_list.append(mae.item())
+
+
         self.model.train()
-        return total_loss
+        return np.mean(loss_list), np.mean(mae_list)
 
     def train(self, setting):
         #70% train, 10% val, 20% test
@@ -90,8 +94,10 @@ class Exp_Main(Exp_Basic):
         test_data, test_loader = self._get_data(flag='test')
 
         path = os.path.join(self.args.checkpoints, setting)
-        if not os.path.exists(path):
-            os.makedirs(path)
+        path_graph = os.path.join('./epoch_graph', setting)
+
+        os.makedirs(path, exist_ok=True)
+        os.makedirs(path_graph,  exist_ok=True)
 
         time_now = time.time()
 
@@ -100,6 +106,8 @@ class Exp_Main(Exp_Basic):
 
         model_optim = self._select_optimizer()
         criterion = self._select_criterion()
+
+        train_losses, val_losses, val_maes = [], [], []
 
         if self.args.use_amp:
             scaler = torch.cuda.amp.GradScaler()
@@ -165,12 +173,17 @@ class Exp_Main(Exp_Basic):
 
             print("Epoch: {} cost time: {}".format(epoch + 1, time.time() - epoch_time))
             train_loss = np.average(train_loss)
-            vali_loss = self.vali(vali_data, vali_loader, criterion)
-            test_loss = self.vali(test_data, test_loader, criterion)
+            val_loss, val_mae = self.vali(vali_data, vali_loader, criterion)
 
-            print("Epoch: {0}, Steps: {1} | Train Loss: {2:.7f} Vali Loss: {3:.7f} Test Loss: {4:.7f}".format(
-                epoch + 1, train_steps, train_loss, vali_loss, test_loss))
-            early_stopping(vali_loss, self.model, path)
+            print(f"Epoch {epoch+1}, Steps {train_steps} | "
+                f"train_loss={train_loss:.7f} | "
+                f"val_loss={val_loss:.7f} val_MAE={val_mae:.7f} |")
+            
+            train_losses.append(train_loss)
+            val_losses.append(val_loss)
+            val_maes.append(val_mae)
+
+            early_stopping(val_loss, self.model, path)
             if early_stopping.early_stop:
                 print("Early stopping")
                 break
@@ -179,6 +192,20 @@ class Exp_Main(Exp_Basic):
 
         best_model_path = path + '/' + 'checkpoint.pth'
         self.model.load_state_dict(torch.load(best_model_path))
+
+        import matplotlib.pyplot as plt
+        epochs = range(1, len(train_losses)+1)
+
+        plt.figure()
+        plt.plot(epochs, train_losses, label='train')
+        plt.plot(epochs, val_losses,   label='val')
+        plt.xlabel('epoch'); plt.ylabel('loss'); plt.title('Loss per epoch')
+        plt.legend(); plt.savefig(os.path.join(path_graph, 'loss_curve.png')); plt.close()
+
+        plt.figure()
+        plt.plot(epochs, val_maes, label='val_MAE')
+        plt.xlabel('epoch'); plt.ylabel('MAE'); plt.title('Validation MAE per epoch')
+        plt.legend(); plt.savefig(os.path.join(path_graph, 'mae_curve.png')); plt.close()
 
         return self.model
 
