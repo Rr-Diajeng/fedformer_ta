@@ -214,6 +214,8 @@ class Decoder(nn.Module):
         if self.norm is not None:
             x = self.norm(x)
 
+        #nambah lstm lalu di norm lagi
+
         if self.projection is not None:
             x = self.projection(x)
         return x, trend

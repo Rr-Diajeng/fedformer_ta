@@ -88,40 +88,7 @@ mse:0.2517329156398773, mae:0.3462088108062744
 KW_BLN2_FEDformer_random_modes64_custom_ftM_sl24_ll24_pl24_dm512_nh8_el2_dl1_df2048_fc3_ebtimeF_dtTrue_'Exp'_2  
 mse:0.2535479664802551, mae:0.3494848906993866
 
-TEMPERATURE_BLN3_FEDformer_random_modes64_custom_ftM_sl24_ll24_pl24_dm512_nh8_el2_dl1_df2048_fc3_ebtimeF_dtTrue_Exp_0  
-mse:0.29188814759254456, mae:0.3870854377746582
-
-TEMPERATURE_BLN3_FEDformer_random_modes64_custom_ftM_sl24_ll24_pl24_dm512_nh8_el2_dl1_df2048_fc3_ebtimeF_dtTrue_Exp_0  
-mse:0.2918868362903595, mae:0.3870844841003418
-
-TEMPERATURE_BLN3_FEDformer_random_modes64_custom_ftM_sl24_ll24_pl24_dm512_nh8_el2_dl1_df2048_fc3_ebtimeF_dtTrue_Exp_0  
-mse:0.2918868660926819, mae:0.3870844841003418
-
-TEMPERATURE_BLN3_FEDformer_random_modes64_custom_ftM_sl24_ll24_pl24_dm512_nh8_el2_dl1_df2048_fc3_ebtimeF_dtTrue_Exp_0  
-mse:0.2918875813484192, mae:0.387085497379303
-
-TEMPERATURE_BLN3_FEDformer_random_modes64_custom_ftM_sl24_ll24_pl24_dm512_nh8_el2_dl1_df2048_fc3_ebtimeF_dtTrue_Exp_0  
-mse:0.29188674688339233, mae:0.3870844841003418
-
-TEMPERATURE_BLN3_FEDformer_random_modes64_custom_ftM_sl24_ll24_pl24_dm512_nh8_el2_dl1_df2048_fc3_ebtimeF_dtTrue_Exp_0  
-mse:0.29188665747642517, mae:0.3870844841003418
-
-TEMPERATURE_BLN3_FEDformer_random_modes64_custom_ftM_sl24_ll24_pl24_dm512_nh8_el2_dl1_df2048_fc3_ebtimeF_dtTrue_Exp_0  
-mse:0.29188668727874756, mae:0.38708436489105225
-
-TEMPERATURE_BLN3_FEDformer_random_modes64_custom_ftM_sl24_ll24_pl24_dm512_nh8_el2_dl1_df2048_fc3_ebtimeF_dtTrue_Exp_0  
-mse:0.2918868362903595, mae:0.387084424495697
-
-TEMPERATURE_BLN3_FEDformer_random_modes64_custom_ftM_sl24_ll24_pl24_dm512_nh8_el2_dl1_df2048_fc3_ebtimeF_dtTrue_Exp_0  
-mse:0.29188665747642517, mae:0.387084424495697
-
-TEMPERATURE_BLN3_FEDformer_random_modes64_custom_ftM_sl24_ll24_pl24_dm512_nh8_el2_dl1_df2048_fc3_ebtimeF_dtTrue_Exp_0  
-mse:0.2918867766857147, mae:0.3870845437049866
-
-TEMPERATURE_BLN3_FEDformer_random_modes64_custom_ftM_sl24_ll24_pl24_dm512_nh8_el2_dl1_df2048_fc3_ebtimeF_dtTrue_Exp_0  
-mse:0.25423872470855713, mae:0.3501620888710022
-
-TEMPERATURE_BLN3_FEDformer_random_modes64_custom_ftM_sl24_ll24_pl24_dm512_nh8_el2_dl1_df2048_fc3_ebtimeF_dtTrue_Exp_0  
+!!!!!!BLN 3: start ada inverse scaled!!!!!!!
 TEMPERATURE_BLN3_FEDformer_random_modes64_custom_ftM_sl24_ll24_pl24_dm512_nh8_el2_dl1_df2048_fc3_ebtimeF_dtTrue_Exp_0  
 mse:0.25424033403396606, mae:0.3501632809638977
 
@@ -175,6 +142,8 @@ mse:0.2535477876663208, mae:0.34948453307151794
 
 KW_BLN3_FEDformer_random_modes64_custom_ftM_sl24_ll24_pl24_dm512_nh8_el2_dl1_df2048_fc3_ebtimeF_dtTrue_Exp_2
 Inverse-scaled mse:10227.263671875, mae:53.206905364990234
+
+!!!!!!!!BLN 4 = pred untuk 1 jam kedepan aja!!!!!!!!!!!! 
 
 TEMPERATURE_BLN4_FEDformer_random_modes64_custom_ftM_sl24_ll24_pl1_dm512_nh8_el2_dl1_df2048_fc3_ebtimeF_dtTrue_Exp_0  
 mse:0.08280235528945923, mae:0.17696215212345123

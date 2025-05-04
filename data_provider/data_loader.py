@@ -288,16 +288,16 @@ class Dataset_Custom(Dataset):
 
         # 2. Filter per flag (tambah buffer untuk sliding window)
         if self.set_type == 0:       # train
-            df_sel = df_raw[df_raw['month'].isin([5,6,7])]
+            df_sel = df_raw[df_raw['month'].isin([4,5,6,])] #4, 5, 6 training
 
         elif self.set_type == 1:     # val
-            df_temp = df_raw[df_raw['month'].isin([7,8])]
+            df_temp = df_raw[df_raw['month'].isin([7])]
             val_start_idx = df_temp[df_temp['month'] == 8].index[0]
             start_idx = val_start_idx - self.seq_len
             df_sel = df_temp.loc[start_idx:]
 
         else:                        # test
-            df_temp = df_raw[df_raw['month'].isin([8,9])]
+            df_temp = df_raw[df_raw['month'].isin([8])]
             test_start_idx = df_temp[df_temp['month'] == 9].index[0]
             start_idx = test_start_idx - self.seq_len
             df_sel = df_temp.loc[start_idx:]
@@ -309,10 +309,10 @@ class Dataset_Custom(Dataset):
         feature_cols = [c for c in df_sel.columns if c not in ['date', self.target, 'month']]
         if self.features in ['M','MS']:
             data_all   = df_sel[feature_cols + [self.target]].values
-            train_part = df_raw[df_raw['month'].isin([5,6,7])][feature_cols + [self.target]]
+            train_part = df_raw[df_raw['month'].isin([4,5,6])][feature_cols + [self.target]]
         else:  # 'S'
             data_all   = df_sel[[self.target]].values
-            train_part = df_raw[df_raw['month'].isin([5,6,7])][[self.target]]
+            train_part = df_raw[df_raw['month'].isin([4,5,6])][[self.target]]
 
         # 4. Scaling (fit hanya di train months)
         if self.scale:
