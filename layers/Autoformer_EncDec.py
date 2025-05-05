@@ -200,19 +200,49 @@ class Decoder(nn.Module):
     """
     Autoformer encoder
     """
-    def __init__(self, layers, norm_layer=None, projection=None):
+    def __init__(
+        self, 
+        layers, 
+        d_model,
+        norm_layer=None, 
+        projection=None,
+        lstm_hidden=None,
+        lstm_layers=1,
+        lstm_dropout=0.0
+    ):
         super(Decoder, self).__init__()
         self.layers = nn.ModuleList(layers)
-        self.norm = norm_layer
+        self.pre_norm = norm_layer
         self.projection = projection
+
+        hidden_size = lstm_hidden or d_model
+        self.lstm = nn.LSTM(
+            input_size=d_model,
+            hidden_size=hidden_size,
+            num_layers=lstm_layers,
+            batch_first=True,
+            dropout=lstm_dropout if lstm_layers > 1 else 0.0
+        )
+
+        self.lstm_proj = (
+            nn.Linear(hidden_size, d_model) if hidden_size != d_model else nn.Identity()
+        )
+        self.post_norm = nn.LayerNorm(d_model)
+
 
     def forward(self, x, cross, x_mask=None, cross_mask=None, trend=None):
         for layer in self.layers:
             x, residual_trend = layer(x, cross, x_mask=x_mask, cross_mask=cross_mask)
             trend = trend + residual_trend
 
-        if self.norm is not None:
-            x = self.norm(x)
+        if self.pre_norm is not None:
+            x = self.pre_norm(x)
+
+        #tambah lstm
+        # nn.LSTM butuh (B, seq_len, feat)
+        x_lstm, _ = self.lstm(x)
+        x_lstm = self.lstm_proj(x_lstm)
+        x = self.post_norm(x_lstm)
 
         if self.projection is not None:
             x = self.projection(x)
