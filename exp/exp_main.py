@@ -264,8 +264,8 @@ class Exp_Main(Exp_Basic):
                     pd = np.concatenate((input[0, :, -1], pred[0, :, -1]), axis=0)
                     visual(gt, pd, os.path.join(folder_path, str(i) + '.pdf'))
 
-        preds = np.array(preds)
-        trues = np.array(trues)
+        preds = np.concatenate(preds, axis=0)
+        trues = np.concatenate(trues, axis=0)
         print('test shape:', preds.shape, trues.shape)
         preds = preds.reshape(-1, preds.shape[-2], preds.shape[-1])
         trues = trues.reshape(-1, trues.shape[-2], trues.shape[-1])
@@ -288,6 +288,46 @@ class Exp_Main(Exp_Basic):
         np.save(folder_path + 'metrics.npy', np.array([mae, mse, rmse, mape, mspe]))
         np.save(folder_path + 'pred.npy', preds)
         np.save(folder_path + 'true.npy', trues)
+
+        # flatten to 2D: (B*pred_len, C)
+        B, L, C = preds.shape
+        preds_2d = preds.reshape(-1, C)
+        trues_2d = trues.reshape(-1, C)
+
+        # inverse‐scale both
+        preds_inv_2d = test_data.inverse_transform_custom(preds_2d)
+        trues_inv_2d = test_data.inverse_transform_custom(trues_2d)
+
+        # reshape back to (B, L, C)
+        preds_inv = preds_inv_2d.reshape(B, L, C)
+        trues_inv = trues_inv_2d.reshape(B, L, C)
+
+        # now compute metrics on the real‐scale values
+        mae, mse, rmse, mape, mspe = metric(preds_inv, trues_inv)
+        print('Inverse‐scaled mse:{}, mae:{}'.format(mse, mae))
+
+        with open("result.txt", 'a') as f:
+            f.write(setting + "\n")
+            f.write(f"Inverse-scaled mse:{mse}, mae:{mae}\n\n")
+
+        # optionally save the inverse‐scaled outputs too
+        np.save(folder_path + 'pred_inv.npy', preds_inv)
+        np.save(folder_path + 'true_inv.npy', trues_inv)
+
+        import pandas as pd
+
+        # --------- flatten dan simpan dua kolom ---------
+        pred_flat = preds_inv.reshape(-1)    # 1‑D, panjang = B*L*C
+        true_flat = trues_inv.reshape(-1)
+
+        df_pt = pd.DataFrame({
+            'pred': pred_flat,
+            'true': true_flat
+        })
+
+        csv_path = os.path.join(folder_path, 'pred_vs_true.csv')
+        df_pt.to_csv(csv_path, index=False)
+        print("CSV saved →", csv_path, "| shape:", df_pt.shape)
 
         return
 
