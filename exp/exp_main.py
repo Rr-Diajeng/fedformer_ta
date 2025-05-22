@@ -71,6 +71,7 @@ class Exp_Main(Exp_Basic):
                     else:
                         outputs = self.model(batch_x, batch_x_mark, dec_inp, batch_y_mark)
                 f_dim = -1 if self.args.features == 'MS' else 0
+                outputs = outputs[:, -self.args.pred_len:, f_dim:]
                 batch_y = batch_y[:, -self.args.pred_len:, f_dim:].to(self.device)
 
                 pred = outputs.detach().cpu()
@@ -82,7 +83,8 @@ class Exp_Main(Exp_Basic):
 
                 loss_list.append(loss.item())
                 mae_list.append(mae.item())
-
+        print("output shape:", outputs.shape)
+        print("label shape:", batch_y.shape)
 
         self.model.train()
         return np.mean(loss_list), np.mean(mae_list)
@@ -140,6 +142,7 @@ class Exp_Main(Exp_Basic):
                             outputs = self.model(batch_x, batch_x_mark, dec_inp, batch_y_mark)
 
                         f_dim = -1 if self.args.features == 'MS' else 0
+                        outputs  = outputs[:, -self.args.pred_len:, f_dim:]
                         batch_y = batch_y[:, -self.args.pred_len:, f_dim:].to(self.device)
                         loss = criterion(outputs, batch_y)
                         train_loss.append(loss.item())
@@ -150,6 +153,7 @@ class Exp_Main(Exp_Basic):
                         outputs = self.model(batch_x, batch_x_mark, dec_inp, batch_y_mark)
 
                     f_dim = -1 if self.args.features == 'MS' else 0
+                    outputs  = outputs[:, -self.args.pred_len:, f_dim:]
                     batch_y = batch_y[:, -self.args.pred_len:, f_dim:].to(self.device)
 
                     loss = criterion(outputs, batch_y)
@@ -171,6 +175,11 @@ class Exp_Main(Exp_Basic):
                     loss.backward()
                     model_optim.step()
 
+                if i == 0:
+                    print("batch_x", batch_x.shape,
+                        "batch_y", batch_y.shape,
+                        "outputs", outputs.shape)
+
             print("Epoch: {} cost time: {}".format(epoch + 1, time.time() - epoch_time))
             train_loss = np.average(train_loss)
             val_loss, val_mae = self.vali(vali_data, vali_loader, criterion)
@@ -189,6 +198,9 @@ class Exp_Main(Exp_Basic):
                 break
 
             adjust_learning_rate(model_optim, epoch + 1, self.args)
+
+        print("output shape:", outputs.shape)
+        print("label shape:", batch_y.shape)
 
         best_model_path = path + '/' + 'checkpoint.pth'
         self.model.load_state_dict(torch.load(best_model_path))
@@ -248,7 +260,7 @@ class Exp_Main(Exp_Basic):
                         outputs = self.model(batch_x, batch_x_mark, dec_inp, batch_y_mark)
 
                 f_dim = -1 if self.args.features == 'MS' else 0
-
+                outputs = outputs[:, -self.args.pred_len:, f_dim:]
                 batch_y = batch_y[:, -self.args.pred_len:, f_dim:].to(self.device)
                 outputs = outputs.detach().cpu().numpy()
                 batch_y = batch_y.detach().cpu().numpy()
@@ -263,6 +275,9 @@ class Exp_Main(Exp_Basic):
                     gt = np.concatenate((input[0, :, -1], true[0, :, -1]), axis=0)
                     pd = np.concatenate((input[0, :, -1], pred[0, :, -1]), axis=0)
                     visual(gt, pd, os.path.join(folder_path, str(i) + '.pdf'))
+
+        print("output shape:", outputs.shape)
+        print("label shape:", batch_y.shape)
 
         preds = np.concatenate(preds, axis=0)
         trues = np.concatenate(trues, axis=0)
@@ -317,10 +332,26 @@ class Exp_Main(Exp_Basic):
         import pandas as pd
 
         # --------- flatten dan simpan dua kolom ---------
+        # ------- Build flat datetime --------
+        seq_len   = test_data.seq_len
+        pred_len  = test_data.pred_len
+        date_arr  = test_data.date_array        # np.ndarray of datetime64
+
+        dates_flat = []
+        for w in range(B):                      # B = 721 window
+            start = seq_len + w                 # index t0 prediksi window ke-w
+            end   = start + pred_len            # +24
+            dates_flat.append(date_arr[start:end])
+
+        dates_flat = np.concatenate(dates_flat)     # shape (17304,)
+        print("dates_flat:", dates_flat.shape)      # sanity check
+        # ------------------------------------
+
         pred_flat = preds_inv.reshape(-1)    # 1‑D, panjang = B*L*C
         true_flat = trues_inv.reshape(-1)
 
         df_pt = pd.DataFrame({
+            'datetime': dates_flat,                     # <-- tambahkan
             'pred': pred_flat,
             'true': true_flat
         })
