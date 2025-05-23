@@ -317,19 +317,32 @@ class Exp_Main(Exp_Basic):
         import pandas as pd
 
         # --------- flatten dan simpan dua kolom ---------
-        pred_flat = preds_inv.reshape(-1)    # 1‑D, panjang = B*L*C
-        true_flat = trues_inv.reshape(-1)
+        # 1. datetimes  : (B*L,)
+        dates_flat = np.concatenate([
+            test_data.date_array[test_data.seq_len + w : test_data.seq_len + w + L]
+            for w in range(B)
+        ])
 
-        df_pt = pd.DataFrame({
-            'pred': pred_flat,
-            'true': true_flat
-        })
+        # 2. flatten pred/true time-axis saja  → (B*L, C)
+        pred_2d = preds_inv.reshape(-1, C)    # (17304, C)
+        true_2d = trues_inv.reshape(-1, C)
 
-        csv_path = os.path.join(folder_path, 'pred_vs_true.csv')
-        df_pt.to_csv(csv_path, index=False)
-        print("CSV saved →", csv_path, "| shape:", df_pt.shape)
+        # 3. nama variabel (pastikan sudah disimpan di Dataset_Custom)
+        var_names = test_data.feature_names          # contoh ['var1','var2','OT']
+        pred_cols = [f"pred_{v}" for v in var_names]
+        true_cols = [f"true_{v}" for v in var_names]
 
-        return
+        # 4. dataframe wide: datetime | pred_… | true_…
+        df = pd.DataFrame(
+                np.hstack([pred_2d, true_2d]),       # (17304, 2*C)
+                columns = pred_cols + true_cols
+        )
+        df.insert(0, "datetime", dates_flat)         # (17304, 1+2C)
+
+        csv_path = os.path.join(folder_path, "pred_vs_true.csv")
+        df.to_csv(csv_path, index=False)
+        print("CSV saved →", csv_path, "| shape:", df.shape)
+        # ------------------------------------------------------
 
     def predict(self, setting, load=False):
         pred_data, pred_loader = self._get_data(flag='pred')
