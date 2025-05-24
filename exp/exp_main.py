@@ -309,6 +309,12 @@ class Exp_Main(Exp_Basic):
         preds_2d = preds.reshape(-1, C)
         trues_2d = trues.reshape(-1, C)
 
+        print('preds shape:', preds.shape)
+        print('preds_2d shape:', preds_2d.shape)
+
+        print('trues shape:', trues.shape)
+        print('trues_2d shape:', trues_2d.shape)
+
         # inverse‐scale both
         preds_inv_2d = test_data.inverse_transform_custom(preds_2d)
         trues_inv_2d = test_data.inverse_transform_custom(trues_2d)
@@ -343,7 +349,7 @@ class Exp_Main(Exp_Basic):
         true_2d = trues_inv.reshape(-1, C)
 
         # 3. nama variabel (pastikan sudah disimpan di Dataset_Custom)
-        var_names = test_data.feature_names          # contoh ['var1','var2','OT']
+        var_names = ['OT']          # contoh ['var1','var2','OT']
         pred_cols = [f"pred_{v}" for v in var_names]
         true_cols = [f"true_{v}" for v in var_names]
 
