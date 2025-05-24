@@ -252,19 +252,42 @@ class Dataset_Custom(Dataset):
         # 3. Siapkan fitur
         # daftar kolom fitur kecuali date, target, month
         feature_cols = [c for c in df_sel.columns if c not in ['date', self.target, 'month']]
-        if self.features in ['M','MS']:
+        if self.features == 'MS':
+            all_cols   = feature_cols + [self.target]   # total 3 kolom
+            data_all   = df_sel[all_cols].values
+
+            #  👉 scaler_x: fit pada 3 kolom
+            scale_part = df_raw[df_raw['month'].isin([4,5,6])][all_cols]
+            self.scaler_x = StandardScaler()
+            self.scaler_x.fit(scale_part.values)
+
+            data = self.scaler_x.transform(data_all)
+
+            # scaler_y (hanya OT) untuk inverse
+            targ_part = df_raw[df_raw['month'].isin([4,5,6])][[self.target]]
+            self.scaler_y_mean  = targ_part[self.target].mean()
+            self.scaler_y_scale = targ_part[self.target].std()
+
+        elif self.features == 'M':
             data_all   = df_sel[feature_cols + [self.target]].values
-            train_part = df_raw[df_raw['month'].isin([4,5,6])][feature_cols + [self.target]]
+            feat_part  = df_raw[df_raw['month'].isin([4,5,6])][feature_cols + [self.target]]
+            targ_part  = feat_part  # output juga multi
+
+            self.scaler_x = StandardScaler()
+            self.scaler_x.fit(feat_part.values)          # untuk semua kolom yg DIUMPANKAN ke model
+            data = self.scaler_x.transform(data_all)
+            self.scaler_y_mean  = targ_part[self.target].mean()
+            self.scaler_y_scale = targ_part[self.target].std()
+
         else:  # 'S'
             data_all   = df_sel[[self.target]].values
-            train_part = df_raw[df_raw['month'].isin([4,5,6])][[self.target]]
+            feat_part  = targ_part = df_raw[df_raw['month'].isin([4,5,6])][[self.target]]
+            self.scaler_x = StandardScaler()
+            self.scaler_x.fit(feat_part.values)          # untuk semua kolom yg DIUMPANKAN ke model
+            data = self.scaler_x.transform(data_all)
+            self.scaler_y_mean  = targ_part[self.target].mean()
+            self.scaler_y_scale = targ_part[self.target].std()
 
-        # 4. Scaling (fit hanya di train months)
-        if self.scale:
-            self.scaler.fit(train_part.values)
-            data = self.scaler.transform(data_all)
-        else:
-            data = data_all
 
         # 5. Timestamp features
         df_stamp = df_sel[['date']].copy()
@@ -302,7 +325,15 @@ class Dataset_Custom(Dataset):
         return len(self.data_x) - self.seq_len - self.pred_len + 1
 
     def inverse_transform_custom(self, data):
-        return self.scaler.inverse_transform(data)
+        """
+        data: np.ndarray
+            - jika shape-nya (N, 1)  → hanya OT  → pakai scaler_y
+            - else                   → banyak kolom → pakai scaler_x
+        """
+        if data.shape[1] == 1:
+            return data * self.scaler_y_scale + self.scaler_y_mean
+        else:
+            return self.scaler_x.inverse_transform(data)
 
 
 class Dataset_Pred(Dataset):
