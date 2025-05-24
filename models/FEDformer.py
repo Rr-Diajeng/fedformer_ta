@@ -111,12 +111,8 @@ class Model(nn.Module):
                 )
                 for l in range(configs.d_layers)
             ],
-            d_model=configs.d_model,
             norm_layer=my_Layernorm(configs.d_model),
-            projection=nn.Linear(configs.d_model, configs.c_out, bias=True),
-            lstm_hidden=configs.d_model,
-            lstm_layers=2,
-            lstm_dropout=0.0
+            projection=nn.Linear(configs.d_model, configs.c_out, bias=True)
         )
 
     def forward(self, x_enc, x_mark_enc, x_dec, x_mark_dec,
