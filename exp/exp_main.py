@@ -101,12 +101,16 @@ class Exp_Main(Exp_Basic):
         os.makedirs(path, exist_ok=True)
         os.makedirs(path_graph,  exist_ok=True)
 
+        #samain time sekarang
         time_now = time.time()
 
+        #ngambil panjang train loader yang didapat
         train_steps = len(train_loader)
         early_stopping = EarlyStopping(patience=self.args.patience, verbose=True)
 
+        #pake optim adam
         model_optim = self._select_optimizer()
+        #pake loss function mse
         criterion = self._select_criterion()
 
         train_losses, val_losses, val_maes = [], [], []
@@ -130,9 +134,12 @@ class Exp_Main(Exp_Basic):
                 batch_y_mark = batch_y_mark.float().to(self.device)
 
                 # decoder input
+                # jadikan 0 semua untuk 12 pred len akhir
                 dec_inp = torch.zeros_like(batch_y[:, -self.args.pred_len:, :]).float()
+                # gabungkan antara 12 label len awal dengan 12 pred len akhir yang sudah diisi 0
                 dec_inp = torch.cat([batch_y[:, :self.args.label_len, :], dec_inp], dim=1).float().to(self.device)
 
+                #dec_inp.shape = (32, 24, 3) # batch_size, label_len+pred_len, C
                 # encoder - decoder
                 if self.args.use_amp:
                     with torch.cuda.amp.autocast():
@@ -150,6 +157,12 @@ class Exp_Main(Exp_Basic):
                     if self.args.output_attention:
                         outputs = self.model(batch_x, batch_x_mark, dec_inp, batch_y_mark)[0]
                     else:
+                        # masuk fed former
+                        #batch x = (32, 24, 3)
+                        #batch x mark = (32, 24, 4)
+                        #dec inp = (32, 24, 3)
+                        #batch y mark = (32, 24, 4)
+
                         outputs = self.model(batch_x, batch_x_mark, dec_inp, batch_y_mark)
 
                     f_dim = -1 if self.args.features == 'MS' else 0

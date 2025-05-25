@@ -30,11 +30,14 @@ class moving_avg(nn.Module):
 
     def forward(self, x):
         # padding on the both ends of time series
+        # pakai nilai ujung agar saat average window menyapu ke awal/akhir tidak akan kehilangan panjang waktu
         front = x[:, 0:1, :].repeat(1, self.kernel_size - 1-math.floor((self.kernel_size - 1) // 2), 1)
         end = x[:, -1:, :].repeat(1, math.floor((self.kernel_size - 1) // 2), 1)
         x = torch.cat([front, x, end], dim=1)
-        x = self.avg(x.permute(0, 2, 1))
-        x = x.permute(0, 2, 1)
+        #x.shape = (batch, seq_len, dim)
+        #butuh permute karena avgpool1d butuh shape (batch, dim or features, seq_len)
+        x = self.avg(x.permute(0, 2, 1)) #-> (Batch, Features, Seq len)
+        x = x.permute(0, 2, 1) #-> (Batch, Seq len, Features)
         return x
 
 
@@ -47,8 +50,15 @@ class series_decomp(nn.Module):
         self.moving_avg = moving_avg(kernel_size, stride=1)
 
     def forward(self, x):
+        # memisahkan time series menjadi seasonal dan trend
+        #trend:
         moving_mean = self.moving_avg(x)
+        #moving_mean.shape = (32, 24, 3)
+
+        # seasonal:
         res = x - moving_mean
+        #seasonal.shape = (32, 24, 3)
+
         return res, moving_mean
 
 
@@ -85,6 +95,8 @@ class EncoderLayer(nn.Module):
     """
     Autoformer encoder layer with the progressive decomposition architecture
     """
+
+    #
     def __init__(self, attention, d_model, d_ff=None, moving_avg=25, dropout=0.1, activation="relu"):
         super(EncoderLayer, self).__init__()
         d_ff = d_ff or 4 * d_model

@@ -26,9 +26,15 @@ class PositionalEmbedding(nn.Module):
 
 
 class TokenEmbedding(nn.Module):
+    # c_in: 3, d_model: 512
+    # mengubah fitur numerik dari tiap waktu jadi representasi vektor di ruang dimensi d_model
+    # misal x.shape = (32, 24, 3) dari 3 fitur
     def __init__(self, c_in, d_model):
         super(TokenEmbedding, self).__init__()
         padding = 1 if torch.__version__ >= '1.5.0' else 2
+        #conv1d digunakan untuk mengubah dimensi dari c_in ke d_model
+        # dari 3 menjadi 512
+        # conv1D digunakan untuk memproses waktu dengan filter agar nilai fitur lebih kontekstual
         self.tokenConv = nn.Conv1d(in_channels=c_in, out_channels=d_model,
                                    kernel_size=3, padding=padding, padding_mode='circular', bias=False)
         for m in self.modules():
@@ -36,7 +42,11 @@ class TokenEmbedding(nn.Module):
                 nn.init.kaiming_normal_(m.weight, mode='fan_in', nonlinearity='leaky_relu')
 
     def forward(self, x):
+        # melakukan permute dari (32, 24, 3) menjadi (32, 3, 24)
+        # lalu transpose jadi (32, 24, 512)
         x = self.tokenConv(x.permute(0, 2, 1)).transpose(1, 2)
+
+        # hasilnya value_embedding.shape = (32, 24, 512)
         return x
 
 
@@ -61,6 +71,7 @@ class FixedEmbedding(nn.Module):
 
 
 class TemporalEmbedding(nn.Module):
+    # mengubah fitur waktu (bulan, hari, jam, dst) jadi vektor embedding dimensi d_model
     def __init__(self, d_model, embed_type='fixed', freq='h'):
         super(TemporalEmbedding, self).__init__()
 
@@ -81,12 +92,22 @@ class TemporalEmbedding(nn.Module):
     def forward(self, x):
         x = x.long()
 
+        # x_mark.shape (32, 24, 4): 
+        # maka 4 fitur waktu:
+        # x[:, :, 0] = month
+        # x[:, :, 1] = day
+        # x[:, :, 2] = weekday
+        # x[:, :, 3] = hour
+
         minute_x = self.minute_embed(x[:, :, 4]) if hasattr(self, 'minute_embed') else 0.
         hour_x = self.hour_embed(x[:, :, 3])
         weekday_x = self.weekday_embed(x[:, :, 2])
         day_x = self.day_embed(x[:, :, 1])
         month_x = self.month_embed(x[:, :, 0])
-
+        
+        #hasilnya dijumlahkan
+        # sehingga shape akhir adalah (32, 24, d_model)
+        # jika d_model=512, maka shape akhir adalah (32, 24, 512)
         return hour_x + weekday_x + day_x + month_x + minute_x
 
 
@@ -130,11 +151,16 @@ class DataEmbedding_onlypos(nn.Module):
         return self.dropout(x)
     
 class DataEmbedding_wo_pos(nn.Module):
+    # enc_in: 3, d_model: 512, embed: 'timeF', freq: 'h', dropout: 0.05
+
     def __init__(self, c_in, d_model, embed_type='fixed', freq='h', dropout=0.1):
         super(DataEmbedding_wo_pos, self).__init__()
-
+        # c_in: 3, d_model: 512
+        # hasil value embedding shapenya: (32, 24, 512)
         self.value_embedding = TokenEmbedding(c_in=c_in, d_model=d_model)
         self.position_embedding = PositionalEmbedding(d_model=d_model)
+
+        # (32, 24, 512)
         self.temporal_embedding = TemporalEmbedding(d_model=d_model, embed_type=embed_type,
                                                     freq=freq) if embed_type != 'timeF' else TimeFeatureEmbedding(
             d_model=d_model, embed_type=embed_type, freq=freq)
@@ -142,7 +168,10 @@ class DataEmbedding_wo_pos(nn.Module):
 
     def forward(self, x, x_mark):
         # try:
+        # embed final: value + time encoding tanpa positional encoding
         x = self.value_embedding(x) + self.temporal_embedding(x_mark)
         # except:
         #     a = 1
+
+        #output akhir shapenya adalah (32, 24, 512)
         return self.dropout(x)

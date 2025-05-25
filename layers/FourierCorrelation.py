@@ -34,9 +34,11 @@ class FourierBlock(nn.Module):
         it does FFT, linear transform, and Inverse FFT.    
         """
         # get modes on frequency domain
+        # pilih modes dominan (frekuensi rendah dari hasil FFT)
         self.index = get_frequency_modes(seq_len, modes=modes, mode_select_method=mode_select_method)
         print('modes={}, index={}'.format(modes, self.index))
 
+        # melakukan transformasi linear untuk domain 
         self.scale = (1 / (in_channels * out_channels))
         self.weights1 = nn.Parameter(
             self.scale * torch.rand(8, in_channels // 8, out_channels // 8, len(self.index), dtype=torch.cfloat))
@@ -47,11 +49,15 @@ class FourierBlock(nn.Module):
         return torch.einsum("bhi,hio->bho", input, weights)
 
     def forward(self, q, k, v, mask):
+        # q.shape = (B, L, H, E) = Batch, sequence length, number of attention heads, embedding dimension
+        # agar FFT (Fourier transform) bisa dilakukan di dimensi waktu terakhir
         # size = [B, L, H, E]
         B, L, H, E = q.shape
-        x = q.permute(0, 2, 3, 1)
+        x = q.permute(0, 2, 3, 1) # B, L, H, E -> B, H, E, L
         # Compute Fourier coefficients
+        #ubah sinyal waktu jadi domain frekuensi:
         x_ft = torch.fft.rfft(x, dim=-1)
+
         # Perform Fourier neural operations
         out_ft = torch.zeros(B, H, E, L // 2 + 1, device=x.device, dtype=torch.cfloat)
         for wi, i in enumerate(self.index):

@@ -48,6 +48,7 @@ def data_provider(args, flag):
         freq=freq
     )
     print(flag, len(data_set))
+    #membagi data dari dataset ke mini batch
     data_loader = DataLoader(
         data_set,
         batch_size=batch_size,

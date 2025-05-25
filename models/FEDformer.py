@@ -38,6 +38,7 @@ class Model(nn.Module):
         # Embedding
         # The series-wise connection inherently contains the sequential information.
         # Thus, we can discard the position embedding of transformers.
+        # enc_in: 3, d_model: 512, embed: 'timeF', freq: 'h', dropout: 0.05
         self.enc_embedding = DataEmbedding_wo_pos(configs.enc_in, configs.d_model, configs.embed, configs.freq,
                                                   configs.dropout)
         self.dec_embedding = DataEmbedding_wo_pos(configs.dec_in, configs.d_model, configs.embed, configs.freq,
@@ -121,15 +122,39 @@ class Model(nn.Module):
 
     def forward(self, x_enc, x_mark_enc, x_dec, x_mark_dec,
                 enc_self_mask=None, dec_self_mask=None, dec_enc_mask=None):
+        
+        #x_enc = (32, 24, 3) dari batch x 
+        #x mark enc = (32, 24, 4) dari batch x mark
+        #x_dec = (32, 24, 3) dari batch x pred_len
+        #x_mark_dec = (32, 24, 4) dari batch x pred_len mark
+
         # decomp init
+        # hitung rata-rata untuk tiap fitur sepanjang waktu (24 langkah waktu atau 1 dim)
+        # mean.shape = (32, 3)
+        # lalu unsqueeze(1) untuk menambah dimensi sehingga menjadi (32, 1, 3)
+        # repeat(1, self.pred_len, 1) untuk mengulang mean sepanjang pred_len
+        # sehingga mean.shape = (32, 12, 3) jika pred_len = 12
         mean = torch.mean(x_enc, dim=1).unsqueeze(1).repeat(1, self.pred_len, 1)
         zeros = torch.zeros([x_dec.shape[0], self.pred_len, x_dec.shape[2]]).to(device)  # cuda()
+        
+        #masuk decomposition
         seasonal_init, trend_init = self.decomp(x_enc)
+
         # decoder input
+        #mengambil trend init 12 label terakhir dan menggabungkannya dengan mean.shape sehingga trend_init = (32, 24, 3)
+        # disini menggabungkan antara 12 langkah terakhir trend history dan 12 rata-rata nilai fitur (pred len)
         trend_init = torch.cat([trend_init[:, -self.label_len:, :], mean], dim=1)
+        # seasonal_init mengambil 12 label terakhir dari seasonal_init dan tambah 12 langkah 0 di belakang karena pred len 12
         seasonal_init = F.pad(seasonal_init[:, -self.label_len:, :], (0, 0, 0, self.pred_len))
+
+
         # enc
+        # x_enc = (32, 24, 3) dari batch x
+        # x_mark_enc = (32, 24, 4) dari batch x mark
+        # hasil: (32, 24, 512)
         enc_out = self.enc_embedding(x_enc, x_mark_enc)
+
+        # enc_out = (32, 24, 512)
         enc_out, attns = self.encoder(enc_out, attn_mask=enc_self_mask)
         # dec
         dec_out = self.dec_embedding(seasonal_init, x_mark_dec)
