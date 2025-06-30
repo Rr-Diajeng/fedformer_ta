@@ -13,6 +13,7 @@ def get_frequency_modes(seq_len, modes=64, mode_select_method='random'):
     'random' means sampling randomly;
     'else' means sampling the lowest modes;
     """
+    #meski random, tapi gara2 ada fix_seed maka hasilnya sama
     modes = min(modes, seq_len//2)
     if mode_select_method == 'random':
         index = list(range(0, seq_len // 2))
@@ -63,6 +64,7 @@ class FourierBlock(nn.Module):
         for wi, i in enumerate(self.index):
             out_ft[:, :, :, wi] = self.compl_mul1d(x_ft[:, :, :, i], self.weights1[:, :, :, wi])
         # Return to time domain
+        # shape (B, L)
         x = torch.fft.irfft(out_ft, n=x.size(-1))
         return (x, None)
 

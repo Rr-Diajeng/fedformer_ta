@@ -8,6 +8,7 @@ import numpy as np
 
 
 def main():
+    # gara-gara ini maka frequency modes hasil indexnya sama
     fix_seed = 2021
     random.seed(fix_seed)
     torch.manual_seed(fix_seed)

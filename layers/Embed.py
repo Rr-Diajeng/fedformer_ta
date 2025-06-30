@@ -155,7 +155,7 @@ class DataEmbedding_wo_pos(nn.Module):
 
     def __init__(self, c_in, d_model, embed_type='fixed', freq='h', dropout=0.1):
         super(DataEmbedding_wo_pos, self).__init__()
-        # c_in: 3, d_model: 512
+        # c_in: 9, d_model: 512
         # hasil value embedding shapenya: (32, 24, 512)
         self.value_embedding = TokenEmbedding(c_in=c_in, d_model=d_model)
         self.position_embedding = PositionalEmbedding(d_model=d_model)
