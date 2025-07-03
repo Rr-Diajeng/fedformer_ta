@@ -53,24 +53,26 @@ class series_decomp(nn.Module):
 
 
 class series_decomp_multi(nn.Module):
-    """
-    Series decomposition block
-    """
     def __init__(self, kernel_size):
-        super(series_decomp_multi, self).__init__()
+        super().__init__()
         self.moving_avg = [moving_avg(kernel, stride=1) for kernel in kernel_size]
-        self.layer = torch.nn.Linear(1, len(kernel_size))
+        self.layer = nn.Linear(1, len(kernel_size))   # tetap
 
     def forward(self, x):
-        moving_mean=[]
-        for func in self.moving_avg:
-            moving_avg = func(x)
-            moving_mean.append(moving_avg.unsqueeze(-1))
-        moving_mean=torch.cat(moving_mean,dim=-1)
-        moving_mean = torch.sum(moving_mean*nn.Softmax(-1)(self.layer(x.unsqueeze(-1))),dim=-1)
-        res = x - moving_mean
-        return res, moving_mean 
+        # pastikan layer di-device yang sama dgn x
+        if self.layer.weight.device != x.device:
+            self.layer = self.layer.to(x.device)
 
+        moving_mean = []
+        for func in self.moving_avg:
+            ma = func(x)
+            moving_mean.append(ma.unsqueeze(-1))
+        moving_mean = torch.cat(moving_mean, dim=-1)
+
+        weights = nn.Softmax(-1)(self.layer(x.unsqueeze(-1)))
+        moving_mean = torch.sum(moving_mean * weights, dim=-1)
+        res = x - moving_mean
+        return res, moving_mean
 
 class FourierDecomp(nn.Module):
     def __init__(self):
