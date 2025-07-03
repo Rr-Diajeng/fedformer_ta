@@ -4021,3 +4021,9 @@ mse:nan, mae:nan
 SEMUAFITURR_KW_WITHLSTM1hour_MS_wavelets_FEDformer_random_modes64_custom_ftMS_sl24_ll24_pl1_dm512_nh8_el2_dl1_df2048_fc3_ebtimeF_dtTrue_'Exp'_4
 Inverse-scaled mse:nan, mae:nan
 
+CORRELATIONFITUR_GHI_wavelets_interface_FEDformer_random_modes64_custom_ftMS_sl24_ll24_pl1_dm512_nh8_el2_dl1_df2048_fc3_ebtimeF_dtTrue_'Exp'_0  
+mse:0.15466192364692688, mae:0.21748466789722443
+
+CORRELATIONFITUR_GHI_wavelets_interface_FEDformer_random_modes64_custom_ftMS_sl24_ll24_pl1_dm512_nh8_el2_dl1_df2048_fc3_ebtimeF_dtTrue_'Exp'_0
+Inverse-scaled mse:10202.68417228699, mae:55.85912926605787
+

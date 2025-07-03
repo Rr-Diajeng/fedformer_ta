@@ -217,6 +217,27 @@ class Exp_Main(Exp_Basic):
 
         best_model_path = path + '/' + 'checkpoint.pth'
         self.model.load_state_dict(torch.load(best_model_path))
+        self.model.to(self.device)
+
+        # ──── SIMPAN TORCHSCRIPT (.pt) ─────────────────────────────────────────
+        seq_len   = self.args.seq_len      # ex: 24
+        label_len = self.args.label_len    # ex: 24
+        pred_len  = self.args.pred_len     # ex: 1
+        enc_in    = self.args.enc_in       # ex: 5   #  jumlah fitur input
+        dec_in    = self.args.dec_in       # ex: 5
+
+        example_inputs = (
+            torch.zeros(1, seq_len,           enc_in),          # x_enc
+            torch.zeros(1, seq_len,                  4),        # x_mark_enc  (month,day,wday,hour)
+            torch.zeros(1, label_len+pred_len, dec_in),         # x_dec
+            torch.zeros(1, label_len+pred_len,        4)        # x_mark_dec
+        )
+
+        scripted = torch.jit.trace(self.model.cpu(), example_inputs)
+        ts_path  = os.path.join(path, "model_ts.pt")
+        scripted.save(ts_path)
+        print(f"✅  TorchScript saved → {ts_path}")
+        # ───────────────────────────────────────────────────────────────────────
 
         import matplotlib.pyplot as plt
         epochs = range(1, len(train_losses)+1)
@@ -239,7 +260,7 @@ class Exp_Main(Exp_Basic):
         if test:
             print('loading model')
             self.model.load_state_dict(torch.load(os.path.join('./checkpoints/' + setting, 'checkpoint.pth')))
-
+        self.model.to(self.device)
         preds = []
         trues = []
         folder_path = './test_results/' + setting + '/'
