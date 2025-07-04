@@ -218,6 +218,15 @@ class Exp_Main(Exp_Basic):
         best_model_path = path + '/' + 'checkpoint.pth'
         self.model.load_state_dict(torch.load(best_model_path))
         self.model.to(self.device)
+        np.savez(
+            os.path.join(path, "scaler_meta.npz"),
+            x_mean=train_data.scaler_x.mean_,
+            x_std =train_data.scaler_x.scale_,
+            y_mean=train_data.scaler_y_mean,
+            y_std =train_data.scaler_y_scale,
+            feature_cols=np.array(train_data.feature_names)  # untuk keamanan urutan
+        )
+        print("✅  scaler_meta.npz saved.")
 
         # ──── SIMPAN TORCHSCRIPT (.pt) ─────────────────────────────────────────
         seq_len   = self.args.seq_len      # ex: 24
